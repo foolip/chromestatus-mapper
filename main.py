@@ -18,25 +18,9 @@ def web_features_data():
     return features
 
 
-def prioritized(entry):
-    if entry["web_feature"] not in [None, "", "Missing feature"]:
-        return False
-    chrome_data = entry["browsers"]["chrome"]
-    post2020 = lambda v: isinstance(v, int) and v >= 80
-    if not (
-        post2020(chrome_data["desktop"])
-        or post2020(chrome_data["android"])
-        or post2020(chrome_data["webview"])
-    ):
-        return False
-    return True
-
-
-def chromestatus_data(filter=prioritized):
+def chromestatus_data():
     with open("chromestatus.json") as f:
         entries = json.load(f)
-    if filter:
-        entries = [entry for entry in entries if filter(entry)]
     keep_keys = ["id", "name", "summary"]
     for data in entries:
         for key in list(data.keys()):
@@ -131,7 +115,7 @@ def main():
     except FileNotFoundError:
         mapping = {}
 
-    entries = chromestatus_data(filter=None)
+    entries = chromestatus_data()
     candidates = web_features_data()
 
     # below code will add entries to input and call process(),
