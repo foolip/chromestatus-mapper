@@ -1,3 +1,5 @@
+import asyncio
+import httpx
 import json
 
 from google import genai
@@ -18,15 +20,35 @@ def web_features_data():
     return features
 
 
-def chromestatus_data():
-    with open("chromestatus.json") as f:
-        entries = json.load(f)
-    keep_keys = ["id", "name", "summary"]
-    for data in entries:
-        for key in list(data.keys()):
-            if key not in keep_keys:
-                del data[key]
-    return entries
+# Yield all entries from chromestatus.com. Because the newest entry is returned
+# first and entries might be created while we're iterating, it's possible that
+# the same entry is yielded multiple times. If this is a problem they have to be
+# deduplicated by ID by the client.
+async def chromestatus_entries():
+    num = 500
+    start = 0
+    async with httpx.AsyncClient() as client:
+        while True:
+            url = f"https://chromestatus.com/api/v0/features?start={start}&num={num}"
+            resp = await client.get(url, timeout=30)
+            resp.raise_for_status()
+            if not resp.text.startswith(")]}'\n"):
+                raise Exception(
+                    "Expected API response did not begin with the magic sequence."
+                )
+            data = json.loads(resp.text[5:])
+            features = data.get("features")
+            # Iteration is done when the API returns no features. This does mean that
+            # we make one more request than necessary, but it's simple and works.
+            if not features:
+                break
+            keep_keys = ["id", "name", "summary"]
+            for entry in features:
+                for key in list(entry.keys()):
+                    if key not in keep_keys:
+                        del entry[key]
+                yield entry
+            start += num
 
 
 input_example = {
@@ -102,7 +124,7 @@ def extract_json_object(text):
     return {}
 
 
-def main():
+async def main():
     config = types.GenerateContentConfig(system_instruction=system_prompt)
 
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
@@ -115,7 +137,6 @@ def main():
     except FileNotFoundError:
         mapping = {}
 
-    entries = chromestatus_data()
     candidates = web_features_data()
 
     # below code will add entries to input and call process(),
@@ -149,7 +170,7 @@ def main():
         with open("mapping-updated.json", "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
 
-    for entry in entries:
+    async for entry in chromestatus_entries():
         id = str(entry["id"])
         del entry["id"]
         if id in mapping:
@@ -161,4 +182,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

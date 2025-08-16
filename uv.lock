@@ -125,10 +125,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "google-genai" },
+    { name = "httpx" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "google-genai" }]
+requires-dist = [
+    { name = "google-genai", specifier = ">=1.30.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+]
 
 [[package]]
 name = "exceptiongroup"
