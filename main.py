@@ -11,8 +11,7 @@ def web_features_data():
     with open("data.extended.json") as f:
         data_extended = json.load(f)
     features = data_extended["features"]
-    # keep_keys = ['name', 'description', 'spec', 'compat_features']
-    keep_keys = ["name", "description"]
+    keep_keys = ['name', 'description', 'compat_features']
     for data in features.values():
         for key in list(data.keys()):
             if key not in keep_keys:
@@ -55,13 +54,11 @@ web_features_example = {
     "abbr": {
         "name": "<abbr>",
         "description": "The `<abbr>` HTML element represents an abbreviation or acronym.",
-        "spec": "https://html.spec.whatwg.org/#the-abbr-element",
         "compat_features": ["html.elements.abbr"],
     },
     "aborting": {
         "name": "AbortController and AbortSignal",
         "description": "The `AbortController` and `AbortSignal` APIs allow you to cancel an ongoing operation, such as a `fetch()` request.",
-        "spec": "https://dom.spec.whatwg.org/#aborting-ongoing-activities",
         "compat_features": [
             "api.AbortController.AbortController",
             "api.AbortController.signal",
@@ -70,7 +67,6 @@ web_features_example = {
     "anchor-positioning": {
         "name": "Anchor positioning",
         "description": "Anchor positioning places an element based on the position of another element.",
-        "spec": "https://drafts.csswg.org/css-anchor-position/",
         "compat_features": [
             "api.CSSPositionTryRule",
             "css.at-rules.position-try",
@@ -82,89 +78,147 @@ web_features_example = {
 
 input_example = {
     "1234": {
-        "name": "Abbreviator API",
-        "summary": "Shipping an API to compute common abbreviations for words. Developer feedback is good.",
+        "title": "Abbreviator API",
+        "summary": "Requesting to ship this API to compute common abbreviations for words. Developer feedback was good.",
     },
     "1337": {
-        "name": "@position-try inside mixins",
+        "title": "@position-try inside mixins",
         "summary": "Support @position-try in mixins. Previously this was dropped at parse time.",
     },
     "1984": {
-        "name": "Deprecate controller.signal",
+        "title": "Deprecate controller.signal",
         "summary": "controller.signal is no longer recommended, use cancelable promises instead",
     },
 }
 
 output_example = {
     "1234": {
-        "id": "NOT_FOUND",
-        "confidence": 0,
-        "notes": "Not part of web-features. Not related to `<abbr>` which is about displaying abbreviations, not computing them.",
+        "failure": True,
+        "notes": "Not related to `<abbr>` which is for marking up abbreviations, not an API for computing them.",
     },
     "1337": {
-        "id": "anchor-positioning",
+        "result": "anchor-positioning",
         "confidence": 70,
-        "notes": "A change to the `@position-try` which is in the `compat_features` of this feature, but could perhaps be considered part of CSS mixins",
+        "notes": "A change to the `@position-try` which is part anchor positioning, but could perhaps be considered part of mixins",
     },
     "1984": {
-        "id": "aborting",
+        "result": "aborting",
         "confidence": 90,
         "notes": "`controller.signal` refers to `AbortController`'s `signal` property which is part of aborting.",
     },
 }
 
 system_prompt = f"""
-Your role is an expert on the web platform and its features, from the point of view of a web developer.
+## Persona
 
-Your task is to act as a classification engine for web platform features.
+You are an expert on the web platform, with deep knowledge from the perspectives of both web developers and browser engineers. You understand the nuances of developer-facing technical writing (like in `web-features`) and implementation-specific process (like in `chromestatus`).
 
-You will be classifying user input against the web-features data set, which will be provided in the prompt as a JSON object on this form:
+---
+
+## Objective
+
+Your task is to classify input `chromestatus` entries against a provided `web-features` dataset. You will process a batch of entries and return a single JSON object with the classification for each.
+
+---
+
+## Context and data formats
+
+### The `web-features` dataset
+
+This is your reference dataset, with over 1000 features described from a web developer's point of view. It is provided as a single JSON object.
+
+- **Keys**: Unique web-feature identifiers.
+- **Values**: An object with the following properties:
+  - `name`: A short name of the feature.
+  - `description`: A developer-focused explanation.
+  - `compat_features`: An array of dot-separated strings ("paths" from browser-compat-data) representing the specific API surface of the feature.
+
+### Input: `chromestatus` entries
+
+You will receive multiple `chromestatus` entries to be classified, provided as a single JSON object:
+
+- **Keys**: Opaque identifiers with no meaning, their only purpose is to link the output results back to the input entries.
+- **Values**: An object with the following properties:
+  - `title`: A title in terms of what's changing in Chrome.
+  - `summary`: A description of the change from a browser engineer's perspective, including the risks of making the change.
+
+-----
+
+## Instructions
+
+For each `chromestatus` entry in the input object, perform the following steps:
+
+1. **Analyze**: Examine the `title` and `summary`. Identify key terms and concepts.
+2. **Match**: Search the provided `web-features` dataset for the most relevant feature.
+   - Look for matches between the key terms and concepts and each feature's `name`, `description`, and `compat_features`.
+   - Use your expert knowledge to bridge terminology gaps.
+3. **Decide and construct**:
+   - If you find one or more plausible matches, select the **single best** match. Construct a **success object**. Use the `confidence` and `notes` fields to express any ambiguity.
+   - If you find no plausible matches, construct a **failure object**. If a candidate match turned out to be implausible on closer analysis, use `notes` to explain why.
+
+-----
+
+## Output format and rules
+
+### Success objects
+
+Used when one or more matches were found. The object has three required keys:
+
+- `result` (string): The matching identifier (key) from the `web-features` dataset.
+- `confidence` (number): Your confidence in the match as an integer percentage from 0 to 100. Must be a multiple of 10.
+  - **90-100**: High confidence, direct match via unambiguous technical terms, syntax, or concepts.
+  - **60-80**: Medium confidence, with ambiguity in the match.
+  - **10-50**: Low confidence, a speculative match.
+- `notes` (string): A concise (1-2 sentences) explanation of your reasoning. Mention the specific terms that led to the best match and explain any uncertainty.
+
+### Failure objects
+
+Used when no matching feature was found. The object has two required keys:
+
+- `failure` (boolean): Must be `true`.
+- `notes` (string): A concise (1-2 sentences) explanation for why a seeming match turned out to be implausible, or the empty string.
+
+### Output format
+
+The output object must use the exact same keys as the input object, and the values must be either a success or failure object.
+
+Your entire response must be the output object as JSON. Do not include any text before or after the JSON.
+
+-----
+
+## Example
+
+Here is an complete end-to-end example of the inputs and outputs.
+
+Example `web-features` dataset with only {len(web_features_example)} features:
 
 ```json
 {json.dumps(web_features_example, indent=2)}
 ```
 
-The `name` and `description` fields are the most important to understanding what a feature is. The `spec` URL can be useful if the same link appears in the user input, but it's not a strong signal. The `compat_features` array is a list of identifiers for the feature's API surface, following a number of conventions. For example "html.elements.a" refers to the HTML element `<a>`. Use the `compat_features` array to get a crisper understanding of what is in scope and out of scope for each feature.
-
-The input will be a JSON object where the keys are unique identifiers and the values are objects with key-value information about the feature being sought. Example input:
+Example input object with {len(input_example)} `chromestatus` entries:
 
 ```json
 {json.dumps(input_example, indent=2)}
 ```
 
-There may be other keys than those that appear in this example, use them as you see fit.
-
-The output must be a JSON object using the input keys, and values are objects with `id`, `confidence`, and `notes` fields:
-- `id` (string) is the web-features identifier, one of the top-level keys from the web-features data set.
-- `confidence` (number) is your confidence in the classification as a integer percentage. Treat it as the probability that the classification is correct. Only use multiples of 10.
-- `notes` (string) is one or two sentences to help a reviewer focus on what's important. Say why you are certain or uncertain.
-
-Example output:
+Given this `web-features` dataset and these `chromestatus` entries, the expected output object is:
 
 ```json
 {json.dumps(output_example, indent=2)}
 ```
-
-Rules for classifying the each feature (one of the nested objects in the overall input):
-1. Use the web-features data and your knowledge of the web platform to identify the feature the user is most likely referring to.
-2. If there is no plausible match, use the special `id` "NOT_FOUND".
-3. If there is a match, the `id` MUST be the web-features identifier. The identifiers are the top-level keys in the web-features data set. No other strings or values are permissible. Additionally provide `confidence` and `notes` as described above.
-
-Rules for formatting the response:
-1. Your response MUST be a single JSON object.
-2. The keys MUST be the same as in the input object.
-3. Each value MUST be an object with keys `id`, `confidence`, and `notes`. All are required, unless `id` is the special value "NOT_FOUND".
-4. The output MUST be valid JSON.
 """
 
 
 def make_prompt(candidates, user_input):
-    return f"""The web-features data set:
+    return f"""The `web-features` dataset:
+
 ```json
 {json.dumps(candidates, indent=2)}
 ```
 
-User input to classify:
+The input `chromestatus` entries to classify:
+
 ```json
 {json.dumps(user_input, indent=2)}
 ```
@@ -228,12 +282,16 @@ async def main():
 
     async for entry in chromestatus_entries():
         id = str(entry["id"])
-        del entry["id"]
         if id in mapping:
             # print(f'Entry {id} already mapped')
             continue
-        input[id] = entry
+
+        # `name` is changed to `title` so that it cannot be conflated with the
+        # `name` field in web-features. `summary` is just copied.
+        input[id] = {"title": entry["name"], "summary": entry["summary"]}
+
         process()
+
     process(end=True)
 
 
