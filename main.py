@@ -209,8 +209,11 @@ async def main():
 
     # below code will add entries to input and call process(),
     # with flush=True the last time.
-    max_entries = 250
     input = {}
+
+    # max_entries was chosen based on measuring how long it takes per request,
+    # and performance plateaus around this point.
+    max_entries = 100
 
     def process(end=False):
         count = len(input)
