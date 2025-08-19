@@ -6,17 +6,7 @@ from google import genai
 from google.genai import types
 
 
-def web_features_data():
-    # Use data.extended.json to get compat_features for all features.
-    with open("data.extended.json") as f:
-        data_extended = json.load(f)
-    features = data_extended["features"]
-    keep_keys = ['name', 'description', 'compat_features']
-    for data in features.values():
-        for key in list(data.keys()):
-            if key not in keep_keys:
-                del data[key]
-    return features
+from web_features import get_web_features
 
 
 # Yield all entries from chromestatus.com. Because the newest entry is returned
@@ -247,7 +237,7 @@ async def main():
     except FileNotFoundError:
         mapping = {}
 
-    candidates = web_features_data()
+    candidates = get_web_features()
 
     # below code will add entries to input and call process(),
     # with flush=True the last time.
