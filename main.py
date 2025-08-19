@@ -215,7 +215,7 @@ async def main():
     # and performance plateaus around this point.
     max_entries = 100
 
-    def process(end=False):
+    async def process(end=False):
         count = len(input)
         if count == 0:
             return
@@ -227,7 +227,7 @@ async def main():
         prompt = make_prompt(candidates, input)
         input.clear()
 
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model="gemini-2.5-pro", contents=prompt, config=config
         )
 
@@ -251,9 +251,9 @@ async def main():
         # `name` field in web-features. `summary` is just copied.
         input[id] = {"title": entry["name"], "summary": entry["summary"]}
 
-        process()
+        await process()
 
-    process(end=True)
+    await process(end=True)
 
 
 if __name__ == "__main__":
