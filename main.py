@@ -12,6 +12,8 @@ with open(CHROMESTATUS_FILE) as f:
 with open(WEB_FEATURES_FILE) as f:
     WEB_FEATURES = json.load(f)
 
+MAPPING_FILE = "mapping.json"
+
 web_features_example = {
     "abbr": {
         "name": "<abbr>",
@@ -202,10 +204,11 @@ async def main():
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
     client = genai.Client()
 
-    # Load existing mapping from disk to support resuming
+    # Load existing mapping from disk to support resuming.
     try:
-        with open("mapping.json") as f:
+        with open(MAPPING_FILE) as f:
             mapping = json.load(f)
+            print(f"Using existing {MAPPING_FILE} with {len(mapping)} entries")
     except FileNotFoundError:
         mapping = {}
 
@@ -248,9 +251,9 @@ async def main():
             print("No JSON object found in results")
             return
 
-        print(f"Got {len(result)} results, saving")
+        print(f"Got {len(result)} results, saving to {MAPPING_FILE}")
         mapping.update(result)
-        with open("mapping-updated.json", "w") as f:
+        with open(MAPPING_FILE, "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
 
     for entry in CHROMESTATUS:
