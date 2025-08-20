@@ -6,6 +6,12 @@ from google.genai import types
 
 from update import CHROMESTATUS_FILE, WEB_FEATURES_FILE
 
+with open(CHROMESTATUS_FILE) as f:
+    CHROMESTATUS = json.load(f)
+
+with open(WEB_FEATURES_FILE) as f:
+    WEB_FEATURES = json.load(f)
+
 web_features_example = {
     "abbr": {
         "name": "<abbr>",
@@ -203,14 +209,8 @@ async def main():
     except FileNotFoundError:
         mapping = {}
 
-    # Load chromestatus and web-features data from disk (created by update.py)
-    with open(CHROMESTATUS_FILE) as f:
-        chromestatus = json.load(f)
-
-    with open(WEB_FEATURES_FILE) as f:
-        web_features = json.load(f)
     candidates = {}
-    for id, data in web_features["features"].items():
+    for id, data in WEB_FEATURES["features"].items():
         # Make a filtered object with the keys in order of importance.
         candidates[id] = {
             "name": data["name"],
@@ -253,7 +253,7 @@ async def main():
         with open("mapping-updated.json", "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
 
-    for entry in chromestatus:
+    for entry in CHROMESTATUS:
         id = str(entry["id"])
         if id in mapping:
             # print(f'Entry {id} already mapped')
