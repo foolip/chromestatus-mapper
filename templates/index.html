@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapping Review</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mapping Review</h1>
+            <div id="progress">Loading...</div>
+        </div>
+        <div class="comparison">
+            <div class="dataset-name">chromestatus</div>
+            <div class="dataset-name">web-features</div>
+        </div>
+        <div class="feature-container">
+            <div id="chromestatus-data" class="feature-display"></div>
+            <div id="web-features-data" class="feature-display"></div>
+        </div>
+        <div class="info-container">
+            <p><strong>Confidence:</strong> <span id="confidence"></span></p>
+            <p><strong>Notes:</strong> <span id="notes"></span></p>
+        </div>
+        <div class="controls">
+            <button id="accept-btn">Accept (y)</button>
+            <button id="reject-btn">Reject (n)</button>
+            <button id="skip-btn">Skip (j)</button>
+        </div>
+        <div class="help">
+            <p>Use keyboard shortcuts for faster review.</p>
+        </div>
+    </div>
+    <template id="feature-template">
+        <h3><a href="" target="_blank"></a></h3>
+        <p></p>
+    </template>
+    <script src="/static/script.js"></script>
+</body>
+</html>

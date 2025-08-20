@@ -1,4 +1,4 @@
 __pycache__
 chromestatus.json
 web-features.json
-mapping.json
+mapping-*.json

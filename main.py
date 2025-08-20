@@ -12,7 +12,7 @@ with open(CHROMESTATUS_FILE) as f:
 with open(WEB_FEATURES_FILE) as f:
     WEB_FEATURES = json.load(f)
 
-MAPPING_FILE = "mapping.json"
+MAPPING_TENTATIVE_FILE = "mapping-tentative.json"
 
 web_features_example = {
     "abbr": {
@@ -206,9 +206,11 @@ async def main():
 
     # Load existing mapping from disk to support resuming.
     try:
-        with open(MAPPING_FILE) as f:
+        with open(MAPPING_TENTATIVE_FILE) as f:
             mapping = json.load(f)
-            print(f"Using existing {MAPPING_FILE} with {len(mapping)} entries")
+            print(
+                f"Using existing {MAPPING_TENTATIVE_FILE} with {len(mapping)} entries"
+            )
     except FileNotFoundError:
         mapping = {}
 
@@ -251,9 +253,9 @@ async def main():
             print("No JSON object found in results")
             return
 
-        print(f"Got {len(result)} results, saving to {MAPPING_FILE}")
+        print(f"Got {len(result)} results, saving to {MAPPING_TENTATIVE_FILE}")
         mapping.update(result)
-        with open(MAPPING_FILE, "w") as f:
+        with open(MAPPING_TENTATIVE_FILE, "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
 
     for entry in CHROMESTATUS:

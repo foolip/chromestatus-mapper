@@ -3,6 +3,7 @@ name = "chromestatus-mapper"
 version = "0.1.0"
 requires-python = ">=3.9"
 dependencies = [
+    "flask>=3.1.2",
     "google-genai>=1.30.0",
     "httpx>=0.28.1",
 ]

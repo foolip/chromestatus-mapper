@@ -23,3 +23,9 @@ Then run the main classification script:
 ```bash
 uv run main.py
 ```
+
+To review the mappings through a web app:
+
+```bash
+uv run review.py
+```
