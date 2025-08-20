@@ -4,9 +4,7 @@ import json
 from google import genai
 from google.genai import types
 
-from chromestatus import get_chromestatus_entries
-from web_features import get_web_features
-
+from update import CHROMESTATUS_FILE, WEB_FEATURES_FILE
 
 web_features_example = {
     "abbr": {
@@ -205,7 +203,12 @@ async def main():
     except FileNotFoundError:
         mapping = {}
 
-    candidates = get_web_features()
+    # Load chromestatus and web-features data from disk (created by update.py)
+    with open(CHROMESTATUS_FILE) as f:
+        chromestatus = json.load(f)
+
+    with open(WEB_FEATURES_FILE) as f:
+        web_features = json.load(f)
 
     # below code will add entries to input and call process(),
     # with flush=True the last time.
@@ -224,7 +227,7 @@ async def main():
 
         print(f"Processing {count} entries", flush=True)
 
-        prompt = make_prompt(candidates, input)
+        prompt = make_prompt(web_features["features"], input)
         input.clear()
 
         response = await client.aio.models.generate_content(
@@ -241,7 +244,7 @@ async def main():
         with open("mapping-updated.json", "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
 
-    async for entry in get_chromestatus_entries():
+    for entry in chromestatus:
         id = str(entry["id"])
         if id in mapping:
             # print(f'Entry {id} already mapped')

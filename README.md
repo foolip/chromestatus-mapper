@@ -9,7 +9,6 @@ The approach is to include all features from web-features as well as the chromes
 - Python 3.9+
 - [uv](https://docs.astral.sh/uv/)
 - An environment variable `GEMINI_API_KEY` with a valid API key
-- `data.extended.json`: The web-features data set
 
 ## Running
 
