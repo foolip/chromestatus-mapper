@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const acceptBtn = document.getElementById("accept-btn");
   const rejectBtn = document.getElementById("reject-btn");
-  const skipBtn = document.getElementById("skip-btn");
+  const prevBtn = document.getElementById("prev-btn");
+  const nextBtn = document.getElementById("next-btn");
 
   let queue = [];
   let currentIndex = -1;
@@ -129,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleInput(action) {
     if (currentIndex >= queue.length) return;
 
-    if (action !== "skip") {
+    if (action == "accept" || action == "reject") {
       const mapping = queue[currentIndex];
       mapping.review_status = action;
       fetch("/api/save", {
@@ -148,20 +149,34 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error(`Error saving review: ${error}`);
         },
       );
+
+      // Note: UI does not wait for review to be saved before moving on, and
+      // errors are not surfaced at all...
+      if (advanceIndex()) {
+        loadMapping();
+      } else {
+        displayCompletion();
+      }
+      return;
     }
 
-    // Note: UI does not wait for review to be saved before moving on, and
-    // errors are not surfaced at all...
-    if (advanceIndex()) {
+    if (action == "prev" && currentIndex > 0) {
+      currentIndex--;
       loadMapping();
-    } else {
-      displayCompletion();
+      return;
+    }
+
+    if (action == "next" && currentIndex < queue.length - 1) {
+        currentIndex++;
+        loadMapping();
+        return;
     }
   }
 
   acceptBtn.addEventListener("click", () => handleInput("accept"));
   rejectBtn.addEventListener("click", () => handleInput("reject"));
-  skipBtn.addEventListener("click", () => handleInput("skip"));
+  prevBtn.addEventListener("click", () => handleInput("prev"));
+  nextBtn.addEventListener("click", () => handleInput("next"));
 
   document.addEventListener("keydown", (e) => {
     switch (e.key) {
@@ -171,8 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
       case "n":
         handleInput("reject");
         break;
-      case "j":
-        handleInput("skip");
+      case "ArrowLeft":
+        handleInput("prev");
+        break;
+      case "ArrowRight":
+        handleInput("next");
         break;
     }
   });

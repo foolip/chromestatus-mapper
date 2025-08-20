@@ -91,6 +91,14 @@ button {
     transition: background-color 0.2s;
 }
 
+#prev-btn {
+    background-color: #6c757d;
+    color: white;
+}
+#prev-btn:hover {
+    background-color: #5a6268;
+}
+
 #accept-btn {
     background-color: #28a745;
     color: white;
@@ -107,11 +115,11 @@ button {
     background-color: #c82333;
 }
 
-#skip-btn {
+#next-btn {
     background-color: #6c757d;
     color: white;
 }
-#skip-btn:hover {
+#next-btn:hover {
     background-color: #5a6268;
 }
 
