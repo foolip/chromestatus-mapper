@@ -209,6 +209,15 @@ async def main():
 
     with open(WEB_FEATURES_FILE) as f:
         web_features = json.load(f)
+    candidates = {}
+    for id, data in web_features["features"].items():
+        # Make a filtered object with the keys in order of importance.
+        candidates[id] = {
+            "name": data["name"],
+            "description": data["description"],
+            # Some features (like AVIF) don't have compat features.
+            "compat_features": data.get("compat_features", []),
+        }
 
     # below code will add entries to input and call process(),
     # with flush=True the last time.
@@ -227,7 +236,7 @@ async def main():
 
         print(f"Processing {count} entries", flush=True)
 
-        prompt = make_prompt(web_features["features"], input)
+        prompt = make_prompt(candidates, input)
         input.clear()
 
         response = await client.aio.models.generate_content(
