@@ -49,11 +49,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const clone = template.content.cloneNode(true);
 
-    const link = clone.querySelector("a");
-    link.href = `https://chromestatus.com/feature/${feature.id}`;
-    link.textContent = feature.name;
+    const nameEl = clone.querySelector(".name a");
+    nameEl.href = `https://chromestatus.com/feature/${feature.id}`;
+    nameEl.textContent = feature.name;
 
-    clone.querySelector("p").textContent = feature.summary;
+    clone.querySelector(".desc").textContent = feature.summary;
+
+    const specEl = clone.querySelector(".spec a");
+    const specLink = feature.spec_link;
+    if (specLink) {
+        specEl.href = specLink;
+        specEl.textContent = specLink;
+    } else {
+        specEl.textContent = 'N/A';
+    }
 
     chromestatusData.innerHTML = "";
     chromestatusData.appendChild(clone);
@@ -67,12 +76,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const clone = template.content.cloneNode(true);
 
-    const link = clone.querySelector("a");
-    link.href = `https://github.com/web-platform-dx/web-features/blob/main/features/${feature.id}.yml`;
-    link.textContent = feature.name;
+    const nameEl = clone.querySelector(".name a");
+    nameEl.href = `https://github.com/web-platform-dx/web-features/blob/main/features/${feature.id}.yml`;
+    nameEl.textContent = feature.name;
 
     // Assuming description_html is trusted. If not, this is an XSS risk.
-    clone.querySelector("p").innerHTML = feature.description_html;
+    clone.querySelector(".desc").innerHTML = feature.description_html;
+
+    const specEl = clone.querySelector(".spec a");
+    specEl.href = feature.spec;
+    specEl.textContent = feature.spec;
 
     webFeaturesData.innerHTML = "";
     webFeaturesData.appendChild(clone);

@@ -58,6 +58,10 @@ h1, #progress {
     overflow-y: auto;
 }
 
+.feature-display dt {
+    font-weight: bold;
+}
+
 #chromestatus-data p {
     white-space: pre-wrap;
 }
