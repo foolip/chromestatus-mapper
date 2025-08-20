@@ -13,7 +13,14 @@ The approach is to include all features from web-features as well as the chromes
 
 ## Running
 
+First update the `chromestatus.json` and `web-features.json` files:
+
 ```bash
-uv sync
+uv run update.py
+```
+
+Then run the main classification script:
+
+```bash
 uv run main.py
 ```
