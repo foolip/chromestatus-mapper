@@ -29,3 +29,9 @@ To review the mappings through a web app:
 ```bash
 uv run review.py
 ```
+
+Finally, to export the accepted mappings to a CSV file:
+
+```bash
+uv run export.py
+```
