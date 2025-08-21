@@ -83,9 +83,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Assuming description_html is trusted. If not, this is an XSS risk.
     clone.querySelector(".desc").innerHTML = feature.description_html;
 
+    // TODO: support displaying multiple spec links
+    const specLink = Array.isArray(feature.spec) ? feature.spec[0] : feature.spec;
     const specEl = clone.querySelector(".spec a");
-    specEl.href = feature.spec;
-    specEl.textContent = feature.spec;
+    specEl.href = specLink;
+    specEl.textContent = specLink;
 
     webFeaturesData.innerHTML = "";
     webFeaturesData.appendChild(clone);
