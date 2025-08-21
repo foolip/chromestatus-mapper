@@ -1,7 +1,7 @@
 import json
 import os
 import asyncio
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 from update import CHROMESTATUS_FILE, WEB_FEATURES_FILE
 
@@ -131,22 +131,23 @@ def save_review():
     return jsonify({"success": True})
 
 
-@app.route("/api/chromestatus/<id>")
-def chromestatus_data(id: str):
-    """Returns chromestatus data for a single entry."""
-    entry = CHROMESTATUS_BY_ID.get(id)
-    if entry:
-        return jsonify(entry)
-    return jsonify({"error": f"Entry not found: {id}"}), 404
+@app.route("/fragment/chromestatus/<id>")
+def chromestatus_fragment(id: str):
+    """Returns chromestatus HTML fragment."""
+    feature = CHROMESTATUS_BY_ID.get(id)
+    if feature:
+        return render_template("chromestatus.html", feature=feature)
+    return "Not Found", 404
 
 
-@app.route("/api/web-features/<id>")
-def web_feature_data(id: str):
-    """Returns web-features data for a single feature."""
+@app.route("/fragment/web-features/<id>")
+def web_features_fragment(id: str):
+    """Returns web-features HTML fragment."""
     feature = WEB_FEATURES["features"].get(id)
     if feature:
-        return jsonify(feature)
-    return jsonify({"error": f"Feature not found: {id}"}), 404
+        feature["id"] = id
+        return render_template("web-features.html", feature=feature)
+    return "Not Found", 404
 
 
 if __name__ == "__main__":

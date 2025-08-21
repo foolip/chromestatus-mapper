@@ -1,0 +1,15 @@
+
+<h3><a href="https://chromestatus.com/feature/{{ feature.id }}" target="_blank">{{ feature.name }}</a></h3>
+<p style="white-space: pre-wrap">{{ feature.summary }}</p>
+<dl>
+    {% if feature.motivation %}
+    <dt>Motivation</dt>
+    <dd style="white-space: pre-wrap">{{ feature.motivation }}</dd>
+    {% endif %}
+    <dt>Specification</dt>
+    {% if feature.spec_link %}
+    <dd><a href="{{ feature.spec_link }}" target="_blank">{{ feature.spec_link }}</a></dd>
+    {% else %}
+    <dd>N/A</dd>
+    {% endif %}
+</dl>

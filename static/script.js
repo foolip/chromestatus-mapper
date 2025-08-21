@@ -41,91 +41,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function displayChromestatusData(feature) {
-    if (!feature || feature.error) {
-      chromestatusData.textContent = "Error loading feature data.";
-      return;
-    }
+  // Update el.innerHTML with HTML fragment from URL
+  async function updateData(el, url) {
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const html = await response.text();
+            el.innerHTML = html;
+            return;
+        }
+    } catch {}
 
-    const clone = template.content.cloneNode(true);
-
-    const nameEl = clone.querySelector(".name a");
-    nameEl.href = `https://chromestatus.com/feature/${feature.id}`;
-    nameEl.textContent = feature.name;
-
-    clone.querySelector(".desc").textContent = feature.summary;
-
-    const specEl = clone.querySelector(".spec a");
-    const specLink = feature.spec_link;
-    if (specLink) {
-        specEl.href = specLink;
-        specEl.textContent = specLink;
-    } else {
-        specEl.textContent = 'N/A';
-    }
-
-    chromestatusData.innerHTML = "";
-    chromestatusData.appendChild(clone);
-  }
-
-  function displayWebFeatureData(feature) {
-    if (!feature || feature.error) {
-      webFeaturesData.textContent = "Error loading feature data.";
-      return;
-    }
-
-    const clone = template.content.cloneNode(true);
-
-    const nameEl = clone.querySelector(".name a");
-    nameEl.href = `https://github.com/web-platform-dx/web-features/blob/main/features/${feature.id}.yml`;
-    nameEl.textContent = feature.name;
-
-    // Assuming description_html is trusted. If not, this is an XSS risk.
-    clone.querySelector(".desc").innerHTML = feature.description_html;
-
-    // TODO: support displaying multiple spec links
-    const specLink = Array.isArray(feature.spec) ? feature.spec[0] : feature.spec;
-    const specEl = clone.querySelector(".spec a");
-    specEl.href = specLink;
-    specEl.textContent = specLink;
-
-    webFeaturesData.innerHTML = "";
-    webFeaturesData.appendChild(clone);
+    el.textContent = 'Error';
   }
 
   async function loadMapping() {
     const mapping = queue[currentIndex];
 
-    // Fetch and display chromestatus data
-    try {
-      const response = await fetch(
-        `/api/chromestatus/${mapping.chromestatus_id}`,
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const featureData = await response.json();
-      displayChromestatusData(featureData);
-    } catch (e) {
-      console.error("Failed to fetch chromestatus data", e);
-      displayChromestatusData({ error: e.message });
-    }
-
-    // Fetch and display web-features data
-    try {
-      const response = await fetch(
-        `/api/web-features/${mapping.web_features_id}`,
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const featureData = await response.json();
-      featureData.id = mapping.web_features_id;
-      displayWebFeatureData(featureData);
-    } catch (e) {
-      console.error("Failed to fetch web-features data", e);
-      displayWebFeatureData({ error: e.message });
-    }
+    // Fetch and update the two views in parallel.
+    await Promise.all([
+        updateData(chromestatusData, `/fragment/chromestatus/${mapping.chromestatus_id}`),
+        updateData(webFeaturesData, `/fragment/web-features/${mapping.web_features_id}`),
+    ]);
 
     confidenceEl.textContent = mapping.confidence;
     notesEl.textContent = mapping.notes || "N/A";

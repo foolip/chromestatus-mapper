@@ -1,0 +1,31 @@
+
+<h3><a href="https://webstatus.dev/features/{{ feature.id }}" target="_blank">{{ feature.name }}</a></h3>
+<p>{{ feature.description_html | safe }}</p>
+<dl>
+    <dt>Specification</dt>
+    <dd>
+        {% if feature.spec is string %}
+        <a href="{{ feature.spec }}" target="_blank">{{ feature.spec }}</a>
+        {% elif feature.spec is iterable %}
+        <ul>
+            {% for url in feature.spec %}
+                <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </dd>
+    {#
+    <dt>Compat keys</dt>
+    <dd>
+        {% if feature.compat_features is iterable %}
+        <ul>
+            {% for path in feature.compat_features %}
+                <li>{{ path }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        N/A
+        {% endif %}
+    </dd>
+    #}
+</dl>
