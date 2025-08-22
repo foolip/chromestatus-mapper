@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const template = document.getElementById("feature-template");
-
   const chromestatusData = document.getElementById("chromestatus-data");
   const webFeaturesData = document.getElementById("web-features-data");
   const confidenceEl = document.getElementById("confidence");
