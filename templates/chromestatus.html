@@ -12,4 +12,12 @@
     {% else %}
     <dd>N/A</dd>
     {% endif %}
+    <dt>Status</dt>
+    <dd>{{ feature.browsers.chrome.status.text }}</dd>
+    {% if feature.browsers.chrome.desktop %}
+    <dd>Chrome Desktop {{ feature.browsers.chrome.desktop }}</dd>
+    {% endif %}
+    {% if feature.browsers.chrome.android %}
+    <dd>Chrome Android {{ feature.browsers.chrome.android }}</dd>
+    {% endif %}
 </dl>

@@ -26,6 +26,17 @@
         N/A
         {% endif %}
     </dd>
+    <dt>Support</dt>
+    {% set support = feature.status.support %}
+    {% if support.chrome %}
+    <dd>Chrome Desktop {{ support.chrome }}</dd>
+    {% endif %}
+    {% if support.chrome_android %}
+    <dd>Chrome Android {{ support.chrome_android }}</dd>
+    {% endif %}
+    {% if not (support.chrome or support.chrome_android) %}
+    <dd>N/A</dd>
+    {% endif %}
     <dt>Source</dt>
     <dd><a href="https://github.com/web-platform-dx/web-features/blob/main/features/{{ feature.id }}.yml" target="_blank">{{ feature.id }}.yml</a></dd>
     <dd><a href="https://github.com/web-platform-dx/web-features/blob/main/features/{{ feature.id }}.yml.dist" target="_blank">{{ feature.id }}.yml.dist</a></dd>
