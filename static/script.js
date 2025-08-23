@@ -19,11 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
       throw new Error(`Failed to fetch review queue: ${response.status}`);
     }
     queue = await response.json();
-    if (advanceIndex()) {
-      loadMapping();
-    } else {
-      displayCompletion();
-    }
+    advanceIndex();
+    await loadMapping();
   }
 
   // Advance currentIndex until review_status is "pending"
@@ -31,10 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
     while (true) {
       currentIndex++;
       if (currentIndex >= queue.length) {
-        return false;
+        currentIndex = queue.length - 1;
+        return;
       }
       if (queue[currentIndex].review_status == "pending") {
-        return true;
+        return;
       }
     }
   }
@@ -69,12 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateProgress() {
-    progressEl.textContent = `Reviewing ${currentIndex + 1} of ${queue.length}`;
-  }
-
-  function displayCompletion() {
-    document.querySelector(".container").innerHTML =
-      "<h1>Review Complete!</h1><p>All mappings have been reviewed. You can close this window.</p>";
+    const done = !queue.some((mapping) => mapping.review_status == "pending");
+    if (done) {
+      progressEl.textContent = `Reviewed all ${queue.length} 🎉`;
+    } else {
+      progressEl.textContent = `Reviewing ${currentIndex + 1} of ${queue.length}`;
+    }
   }
 
   function handleInput(action) {
@@ -102,11 +100,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Note: UI does not wait for review to be saved before moving on, and
       // errors are not surfaced at all...
-      if (advanceIndex()) {
-        loadMapping();
-      } else {
-        displayCompletion();
-      }
+      advanceIndex();
+      loadMapping();
       return;
     }
 
