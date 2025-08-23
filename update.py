@@ -18,7 +18,7 @@ async def update_chromestatus() -> None:
     start = 0
     async with httpx.AsyncClient() as client:
         while True:
-            print(f"Fetching chromestatus entries {start}-{start + num}")
+            print(f"Fetching chromestatus entries {start + 1}-{start + num}")
             url = f"https://chromestatus.com/api/v0/features?start={start}&num={num}"
             resp = await client.get(url, timeout=30)
             resp.raise_for_status()
