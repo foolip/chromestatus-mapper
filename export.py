@@ -11,6 +11,10 @@ def main():
 
     rows = []
 
+    # Sort by web-features ID to allow for a final skimming review in the
+    # chromestatus.com import tool.
+    data.sort(key=lambda x: x["web_features_id"])
+
     for item in data:
         if item['review_status'] == 'accept':
             rows.append({
@@ -25,6 +29,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows)
         print(f"Exported {MAPPING_EXPORT_FILE} with {len(rows)} rows")
+
 
 if __name__ == "__main__":
     main()

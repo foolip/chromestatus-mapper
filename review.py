@@ -96,7 +96,11 @@ def send_static(path):
 
 @app.route("/api/queue")
 def get_queue():
-    return jsonify(_queue)
+    # Sort by web-features ID to allow for faster review (less context
+    # switching) but leave queue written to disk in the original order.
+    queue = _queue.copy()
+    queue.sort(key=lambda x: x["web_features_id"])
+    return jsonify(queue)
 
 
 @app.route("/api/save", methods=["POST"])
