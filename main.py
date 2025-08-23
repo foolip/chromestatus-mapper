@@ -254,6 +254,9 @@ async def main():
             return
 
         print(f"Got {len(result)} results, saving to {MAPPING_TENTATIVE_FILE}")
+        # TODO: Ensure that the results use the same chromestatus IDs as the
+        # request, and that suggested web-features IDs exist. Hallucinations are
+        # possible, and we could retry entries where the results are bogus.
         mapping.update(result)
         with open(MAPPING_TENTATIVE_FILE, "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
