@@ -1,4 +1,3 @@
-import asyncio
 import json
 from typing import Optional
 
@@ -199,7 +198,7 @@ def extract_json_object(text) -> Optional[dict]:
     return None
 
 
-async def main():
+def main():
     config = types.GenerateContentConfig(system_instruction=system_prompt)
 
     # The client gets the API key from the environment variable `GEMINI_API_KEY`.
@@ -233,7 +232,7 @@ async def main():
     # and performance plateaus around this point.
     max_entries = 100
 
-    async def process(end=False):
+    def process(end=False):
         count = len(input)
         if count == 0:
             return
@@ -244,7 +243,7 @@ async def main():
 
         prompt = make_prompt(candidates, input)
 
-        response = await client.aio.models.generate_content(
+        response = client.models.generate_content(
             model="gemini-2.5-pro", contents=prompt, config=config
         )
 
@@ -289,10 +288,10 @@ async def main():
         # `name` field in web-features. `summary` is just copied.
         input[id] = {"title": entry["name"], "summary": entry["summary"]}
 
-        await process()
+        process()
 
-    await process(end=True)
+    process(end=True)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
