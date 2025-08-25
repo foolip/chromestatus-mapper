@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Optional
 
 from google import genai
 from google.genai import types
@@ -189,13 +190,13 @@ The input `chromestatus` entries to classify:
 """
 
 
-def extract_json_object(text):
+def extract_json_object(text) -> Optional[dict]:
     start_index = text.find("{")
     end_index = text.rfind("}")
     if start_index != -1 and end_index > start_index:
         json_string = text[start_index : end_index + 1]
         return json.loads(json_string)
-    return {}
+    return None
 
 
 async def main():
@@ -242,29 +243,46 @@ async def main():
         print(f"Processing {count} entries", flush=True)
 
         prompt = make_prompt(candidates, input)
-        input.clear()
 
         response = await client.aio.models.generate_content(
             model="gemini-2.5-pro", contents=prompt, config=config
         )
 
-        result = extract_json_object(response.text)
-        if not result:
-            print("No JSON object found in results")
+        response_object = extract_json_object(response.text)
+        if not response_object:
+            print("No JSON object found in response")
             return
 
-        print(f"Got {len(result)} results, saving to {MAPPING_TENTATIVE_FILE}")
-        # TODO: Ensure that the results use the same chromestatus IDs as the
-        # request, and that suggested web-features IDs exist. Hallucinations are
-        # possible, and we could retry entries where the results are bogus.
-        mapping.update(result)
+        valid = 0
+        for id, outcome in response_object.items():
+            if id not in input:
+                print(f"Warning: unexpected key in response: {id}")
+                continue
+            if not ("result" in outcome or "failure" in outcome):
+                print(f"Warning: invalid outcome object: {outcome}")
+                continue
+            if "result" in outcome:
+                feature = outcome["result"]
+                if feature not in WEB_FEATURES["features"]:
+                    print(f"Warning: unexpected result: {feature}")
+                    continue
+            mapping[id] = outcome
+            valid += 1
+
+        input.clear()
+
+        print(f"Got {valid} valid results, saving to {MAPPING_TENTATIVE_FILE}")
         with open(MAPPING_TENTATIVE_FILE, "w") as f:
             json.dump(mapping, f, indent=2, sort_keys=True)
 
     for entry in CHROMESTATUS:
+        # Skip any entry that already has a valid web-features ID set.
+        if entry["web_feature"] in WEB_FEATURES["features"]:
+            continue
+
+        # Skip any mapped entry to support resuming the script.
         id = str(entry["id"])
         if id in mapping:
-            # print(f'Entry {id} already mapped')
             continue
 
         # `name` is changed to `title` so that it cannot be conflated with the
